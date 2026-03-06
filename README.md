@@ -1,6 +1,6 @@
 # n8n Strix Agentic Hub
 
-Local-first automation stack for orchestrating `n8n` workflows with a self-hosted `Ollama` model on AMD ROCm.
+Self-hosted automation stack built around `n8n`, a local `Ollama` model on AMD ROCm, and a small `FastAPI` service that turns incoming requests into report artifacts and emails.
 
 ![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
@@ -12,9 +12,12 @@ Local-first automation stack for orchestrating `n8n` workflows with a self-hoste
 
 ## Overview
 
-This repository packages a production-shaped local stack for automation, artifact generation, and AI-assisted workflow execution. The current implementation is centered on webhook-driven report pipelines:
+This repo is meant to keep `n8n` focused on orchestration and let the heavier work happen somewhere else. Right now it ships with two working flows:
 
-`Webhook -> n8n -> report-service -> Ollama -> Markdown/PDF artifact -> email`
+- `Webhook -> n8n -> report-service -> Ollama -> Markdown/PDF -> email`
+- `Telegram-style webhook -> n8n -> report-service -> Markdown/PDF -> email`
+
+The main idea is simple: `n8n` receives the event, routes it, retries it, and keeps the workflow visible. The backend service does the AI call, builds the report, renders the PDF, and sends the email.
 
 ## Tech Used
 
@@ -23,26 +26,33 @@ This repository packages a production-shaped local stack for automation, artifac
 - `Ollama` for local OpenAI-compatible chat inference
 - `gpt-oss:20b` as the default local model
 - `PostgreSQL` for n8n persistence
-- `Redis` for n8n queue mode
+- `Redis` for queue mode
 - `Mailpit` for local SMTP testing and inbox inspection
 - `ReportLab` for PDF generation
-- `uv` for Python dependency and environment management
+- `uv` for Python dependency management
 - `Docker Compose` for local deployment
 - `AMD ROCm` for GPU-backed local inference
 - `JSON workflow artifacts` for code-first n8n versioning
 
-## Architecture
+## How It Works
 
-`n8n` is the orchestrator, not the heavy compute runtime. Workflow nodes handle triggers, control flow, retries, and downstream calls. The backend service performs the AI request, report assembly, PDF rendering, and SMTP delivery.
+The runtime split is intentional:
 
-Current workflow artifacts:
+- `n8n` handles triggers, branching, retries, and delivery flow
+- `report-service` handles prompt building, PDF rendering, and SMTP delivery
+- `Ollama` stays behind an OpenAI-compatible chat endpoint so the model layer is easy to swap later
+
+Active workflow artifacts live here:
 
 - [`n8n/workflows/active/report-request-webhook.json`](./n8n/workflows/active/report-request-webhook.json)
-- Published webhook path: `/webhook/report-request-v2`
 - [`n8n/workflows/active/telegram-report-webhook.json`](./n8n/workflows/active/telegram-report-webhook.json)
-- Published webhook path: `/webhook/telegram-report-bot`
 
-## Current Layout
+Current published paths:
+
+- `/webhook/report-request-v2`
+- `/webhook/telegram-report-bot`
+
+## Layout
 
 ```text
 .
@@ -59,74 +69,51 @@ Current workflow artifacts:
 └── scripts/
 ```
 
-## Prerequisites
-
-- Docker Engine with Compose
-- AMD ROCm-capable host if you want GPU-backed local inference
-- The `gpt-oss:20b` model already present on the host under `OLLAMA_MODELS_DIR`
-
 ## Quick Start
 
-1. Copy the environment template:
+1. Copy the environment template.
 
-   ```bash
-   cp .env.template .env
-   ```
+```bash
+cp .env.template .env
+```
 
-2. Review `.env` and adjust:
+2. Review `.env` and adjust the basics:
 
-   - secrets
-   - local ports
-   - `OLLAMA_MODELS_DIR`
-   - absolute host paths
-   - `REPORT_REQUEST_WEBHOOK_PATH` if you rename the workflow path
+- secrets and passwords
+- local ports
+- `OLLAMA_MODELS_DIR`
+- bind-mounted host paths
 
-3. Create the local bind-mount folders:
+3. Create the local directories.
 
-   ```bash
-   ./scripts/bootstrap-local-dirs.sh
-   ```
+```bash
+./scripts/bootstrap-local-dirs.sh
+```
 
-4. Start the stack:
+4. Start the stack.
 
-   ```bash
-   ./scripts/start-stack.sh
-   ```
+```bash
+./scripts/start-stack.sh
+```
 
-5. Open:
+5. Open the services:
 
-   - `http://localhost:5678` for `n8n`
-   - `http://localhost:11434` for `Ollama`
-   - `http://localhost:18100/docs` for `report-service`
-   - `http://localhost:8025` for `Mailpit`
+- `http://localhost:5678` for `n8n`
+- `http://localhost:11434` for `Ollama`
+- `http://localhost:18100/docs` for `report-service`
+- `http://localhost:8025` for `Mailpit`
 
-No external API keys are required for the current generic webhook-to-email flow. The only required values in `.env` are local secrets, passwords, ports, and host paths.
+## What Works Today
 
-Telegram is different:
-
-- for the local simulated Telegram smoke test, no Telegram credential is required
-- for a real Telegram bot, you need a bot token issued by Telegram via `@BotFather`
-- Telegram must be able to reach your `WEBHOOK_URL`, which means a public HTTPS URL is required for real inbound bot traffic
-- long-running report generation can exceed what is comfortable for a direct Telegram webhook round-trip, so production setups often introduce a queue, bridge, or lighter acknowledgement path for Telegram ingress
-
-SMTP is also different in production:
-
-- local Mailpit uses unauthenticated SMTP on `mailpit:1025`
-- real providers usually require credentials plus `STARTTLS` or `SSL`
-- Gmail SMTP requires an account-specific app password rather than the normal account password
-- Google Workspace SMTP relay is often a cleaner production fit than a personal Gmail inbox
-
-## Workflow Management
-
-Workflows live in JSON form under [`n8n/workflows`](./n8n/workflows).
+- direct backend report generation
+- generic n8n webhook flow
+- Telegram-shaped webhook flow
+- local SMTP delivery through Mailpit
+- workflow import/export through JSON artifacts and CLI helpers
 
 Useful commands:
 
 ```bash
-./scripts/start-stack.sh
-./scripts/n8n-import-workflows.sh
-./scripts/n8n-activate-workflows.sh
-./scripts/n8n-export-workflows.sh
 ./scripts/test-n8n-health.sh
 ./scripts/test-ollama.sh
 ./scripts/test-report-service.sh
@@ -135,11 +122,7 @@ Useful commands:
 ./scripts/test-mailpit.sh
 ```
 
-Workflows are treated as deployable artifacts: versioned in Git, imported/exported with the CLI, and edited through the UI only when it improves delivery speed.
-
-## Verification
-
-Backend quality checks:
+Backend checks:
 
 ```bash
 cd backend
@@ -148,28 +131,13 @@ uv run ruff check
 uv run pytest
 ```
 
-Stack smoke checks:
+## Email and Telegram
 
-```bash
-./scripts/test-n8n-health.sh
-./scripts/test-ollama.sh
-./scripts/test-report-service.sh
-./scripts/test-report-webhook.sh
-./scripts/test-telegram-report-webhook.sh
-./scripts/test-mailpit.sh
-```
+Local email works out of the box because the stack includes `Mailpit`. Messages are sent over SMTP, but they stay inside your local Compose network and show up in the Mailpit UI.
 
-Telegram helper:
+If you want real email delivery, switch the SMTP settings in `.env` to a real provider. Two common options are:
 
-```bash
-./scripts/register-telegram-webhook.sh
-```
-
-This helper configures Telegram to deliver bot updates to the `telegram-report-bot` n8n webhook. It requires both `TELEGRAM_BOT_TOKEN` and a public HTTPS `WEBHOOK_URL`.
-
-## Production Env
-
-Real Gmail / Google Workspace SMTP:
+Gmail SMTP:
 
 ```env
 SMTP_HOST=smtp.gmail.com
@@ -180,7 +148,7 @@ SMTP_PASSWORD=your-16-digit-app-password
 SMTP_SECURITY=starttls
 ```
 
-Google Workspace relay variant:
+Google Workspace relay:
 
 ```env
 SMTP_HOST=smtp-relay.gmail.com
@@ -191,7 +159,12 @@ SMTP_PASSWORD=
 SMTP_SECURITY=starttls
 ```
 
-Real Telegram bot:
+Telegram is split into two modes:
+
+- local testing: no Telegram credential needed
+- real bot: requires a real bot token and a public HTTPS webhook URL
+
+Example production Telegram settings:
 
 ```env
 WEBHOOK_URL=https://your-public-domain.example/
@@ -204,37 +177,26 @@ TELEGRAM_WEBHOOK_SECRET_TOKEN=replace-with-a-random-secret
 TELEGRAM_REPORT_RECIPIENT_EMAIL=reports@example.com
 ```
 
-Then register Telegram:
+Then register the bot webhook:
 
 ```bash
 ./scripts/register-telegram-webhook.sh
 ```
 
-## Production Notes
+## Notes for Production
 
-- `queue` mode is enabled because it is the official scalable mode for `n8n`.
-- `Postgres` is used instead of SQLite.
-- `Redis` backs the queue.
-- `report-service` isolates AI and PDF work from the workflow engine.
-- `manual` executions are offloaded to workers too.
-- `healthz` and readiness endpoints are enabled.
-- Runtime data is bind-mounted on the host.
+If you want to push this past local development, the shape is already good:
 
-Important Telegram caveat:
+- `n8n` is running in queue mode
+- `Postgres` and `Redis` are already separated out
+- heavy work already lives outside the workflow engine
 
-`setWebhook` secret tokens are supported by the helper script, but this repository does not yet enforce Telegram header verification inside `n8n` itself. For hardened internet-facing production ingress, place a validating reverse proxy or custom ingress in front of the Telegram webhook before forwarding into `n8n`.
+The next things to harden are the practical ones:
 
-Important caveat:
+- move artifacts to object storage if you expect many PDFs or more than one node
+- put proper HTTPS ingress in front of `n8n`
+- validate Telegram traffic at the edge if you expose that webhook publicly
+- use real SMTP credentials instead of Mailpit
+- scale `n8n-worker` before touching the rest of the stack
 
-`n8n` documents that queue mode is not a good fit for binary persistence on the local filesystem. If we later build PDF-heavy or file-heavy flows, we should move binary storage to S3-compatible storage instead of relying on local filesystem persistence.
-
-## Scaling Direction
-
-The local Compose stack mirrors the production shape that `n8n` recommends:
-
-- scale `n8n-worker` replicas for execution throughput
-- keep `Postgres` and `Redis` externalized
-- optionally split webhook processing into dedicated instances
-- move artifact storage from local bind mounts to object storage for multi-node deployments
-
-The Docker images in this repository are suitable building blocks for a future Kubernetes deployment. Kubernetes runs containers, not specifically Docker as a runtime, but Docker-built OCI images are standard inputs for Kubernetes clusters.
+The model side is also flexible. Today it points at local `Ollama`, but the backend is already speaking to an OpenAI-compatible chat endpoint, so swapping the inference target later is straightforward.

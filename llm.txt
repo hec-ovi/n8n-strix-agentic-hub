@@ -2,9 +2,9 @@ n8n Strix Agentic Hub
 =====================
 
 Purpose
-- Self-hosted workflow orchestration with n8n.
-- Local report generation service using a self-hosted Ollama `gpt-oss:20b` model on ROCm.
-- Output artifacts persisted on the host filesystem and delivered through SMTP.
+- Self-hosted automation stack built around `n8n`.
+- Local report generation service backed by `Ollama` and `gpt-oss:20b`.
+- Output artifacts stored on the host and delivered through SMTP.
 
 Tech Used
 - `n8n` for orchestration.
@@ -15,30 +15,18 @@ Tech Used
 - `ReportLab` for PDF rendering.
 - `Docker Compose` for local deployment.
 
-Service Map
-- `n8n`: workflow orchestration runtime in queue mode.
-- `n8n-worker`: background execution worker.
-- `postgres`: durable workflow metadata store.
-- `redis`: queue backend for n8n.
-- `ollama`: local OpenAI-compatible chat endpoint on AMD ROCm.
-- `report-service`: FastAPI service for synthesis, PDF rendering, and email delivery.
-- `mailpit`: local SMTP sink and inbox viewer.
+Current Flows
+- `Webhook -> n8n -> report-service -> Ollama -> Markdown/PDF -> email`
+- `Telegram-style webhook -> n8n -> report-service -> Markdown/PDF -> email`
 
-Current Flow
-- Trigger: `Webhook` node on n8n.
-- Orchestration: n8n calls `report-service`.
-- AI: `report-service` calls `ollama` at `/v1/chat/completions`.
-- Artifact generation: Markdown and PDF are written to host storage.
-- Delivery: PDF is emailed through Mailpit SMTP.
+Design Intent
+- Keep `n8n` focused on triggers, flow control, retries, and delivery.
+- Keep AI calls, PDF generation, and SMTP work in the backend service.
+- Keep the model layer behind an OpenAI-compatible chat interface so it can be swapped later with less friction.
+- Keep workflows versioned as JSON artifacts under `n8n/workflows`.
 
-Additional Flow
-- Trigger: Telegram-compatible webhook payload into n8n.
-- Orchestration: n8n forwards the Telegram update and `report-service` normalizes it.
-- Delivery: `report-service` generates the PDF and emails it to the configured recipient.
-
-Design Rules
-- n8n orchestrates, but does not perform heavy compute.
-- AI calls target OpenAI-compatible chat APIs for lower future migration friction.
-- SMTP settings must support authenticated providers with STARTTLS or SSL, not only local test sinks.
-- Generated artifacts live outside containers on bind-mounted host paths.
-- Workflow definitions are stored as JSON artifacts under `n8n/workflows`.
+Production Direction
+- Scale workers first.
+- Move binary artifacts to object storage when local disk stops being enough.
+- Put proper HTTPS ingress in front of public webhooks.
+- Treat Mailpit as local-only and replace it with real SMTP for external delivery.
