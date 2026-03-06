@@ -51,7 +51,6 @@ Current workflow artifacts:
 ├── llm.txt
 ├── README.md
 ├── .env.template
-├── frontend/
 ├── n8n/
 │   ├── backups/
 │   ├── local-files/
@@ -59,8 +58,6 @@ Current workflow artifacts:
 ├── ollama/
 └── scripts/
 ```
-
-The `frontend/` scaffold is currently inactive and not required by the running stack.
 
 ## Prerequisites
 
