@@ -11,6 +11,13 @@ FastAPI service for turning automation requests into deliverable report artifact
 - Normalize Telegram webhook payloads into report jobs
 - Expose artifact files over HTTP for downstream automation steps
 
+## SMTP Configuration
+
+- local development: `mailpit:1025` with `SMTP_SECURITY=none`
+- authenticated providers: set `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_SECURITY`
+- Gmail typically uses `smtp.gmail.com:587` with `SMTP_SECURITY=starttls`
+- the password for Gmail SMTP should be an app password, not the normal account password
+
 ## Endpoints
 
 - `POST /api/v1/report-jobs`

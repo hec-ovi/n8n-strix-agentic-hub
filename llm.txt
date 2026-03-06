@@ -24,11 +24,12 @@ Current Flow
 
 Additional Flow
 - Trigger: Telegram-compatible webhook payload into n8n.
-- Orchestration: n8n normalizes the Telegram update and calls `report-service`.
+- Orchestration: n8n forwards the Telegram update and `report-service` normalizes it.
 - Delivery: `report-service` generates the PDF and emails it to the configured recipient.
 
 Design Rules
 - n8n orchestrates, but does not perform heavy compute.
 - AI calls target OpenAI-compatible chat APIs for lower future migration friction.
+- SMTP settings must support authenticated providers with STARTTLS or SSL, not only local test sinks.
 - Generated artifacts live outside containers on bind-mounted host paths.
 - Workflow definitions are stored as JSON artifacts under `n8n/workflows`.

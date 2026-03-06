@@ -99,6 +99,13 @@ Telegram is different:
 - Telegram must be able to reach your `WEBHOOK_URL`, which means a public HTTPS URL is required for real inbound bot traffic
 - long-running report generation can exceed what is comfortable for a direct Telegram webhook round-trip, so production setups often introduce a queue, bridge, or lighter acknowledgement path for Telegram ingress
 
+SMTP is also different in production:
+
+- local Mailpit uses unauthenticated SMTP on `mailpit:1025`
+- real providers usually require credentials plus `STARTTLS` or `SSL`
+- Gmail SMTP requires an account-specific app password rather than the normal account password
+- Google Workspace SMTP relay is often a cleaner production fit than a personal Gmail inbox
+
 ## Workflow Management
 
 Workflows live in JSON form under [`n8n/workflows`](./n8n/workflows).
@@ -150,6 +157,49 @@ Telegram helper:
 
 This helper configures Telegram to deliver bot updates to the `telegram-report-bot` n8n webhook. It requires both `TELEGRAM_BOT_TOKEN` and a public HTTPS `WEBHOOK_URL`.
 
+## Production Env
+
+Real Gmail / Google Workspace SMTP:
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SENDER=your.name@example.com
+SMTP_USERNAME=your.name@example.com
+SMTP_PASSWORD=your-16-digit-app-password
+SMTP_SECURITY=starttls
+```
+
+Google Workspace relay variant:
+
+```env
+SMTP_HOST=smtp-relay.gmail.com
+SMTP_PORT=587
+SMTP_SENDER=reports@example.com
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_SECURITY=starttls
+```
+
+Real Telegram bot:
+
+```env
+WEBHOOK_URL=https://your-public-domain.example/
+TELEGRAM_BOT_TOKEN=123456789:telegram-bot-token
+TELEGRAM_WEBHOOK_PATH=telegram-report-bot
+TELEGRAM_ALLOWED_UPDATES=["message"]
+TELEGRAM_DROP_PENDING_UPDATES=true
+TELEGRAM_MAX_CONNECTIONS=20
+TELEGRAM_WEBHOOK_SECRET_TOKEN=replace-with-a-random-secret
+TELEGRAM_REPORT_RECIPIENT_EMAIL=reports@example.com
+```
+
+Then register Telegram:
+
+```bash
+./scripts/register-telegram-webhook.sh
+```
+
 ## Production Notes
 
 - `queue` mode is enabled because it is the official scalable mode for `n8n`.
@@ -159,6 +209,10 @@ This helper configures Telegram to deliver bot updates to the `telegram-report-b
 - `manual` executions are offloaded to workers too.
 - `healthz` and readiness endpoints are enabled.
 - Runtime data is bind-mounted on the host.
+
+Important Telegram caveat:
+
+`setWebhook` secret tokens are supported by the helper script, but this repository does not yet enforce Telegram header verification inside `n8n` itself. For hardened internet-facing production ingress, place a validating reverse proxy or custom ingress in front of the Telegram webhook before forwarding into `n8n`.
 
 Important caveat:
 

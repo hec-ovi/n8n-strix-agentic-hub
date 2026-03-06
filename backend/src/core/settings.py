@@ -1,6 +1,6 @@
 """Application settings."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import EmailStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     smtp_sender: Annotated[str, Field(description="From address used for report emails")] = (
         "reports@n8n-strix.local"
     )
+    smtp_username: Annotated[
+        str | None, Field(description="Optional SMTP username for authenticated providers")
+    ] = None
+    smtp_password: Annotated[
+        str | None, Field(description="Optional SMTP password or app password")
+    ] = None
+    smtp_security: Annotated[
+        Literal["none", "starttls", "ssl"],
+        Field(description="Transport security mode used when connecting to SMTP"),
+    ] = "none"
     telegram_report_recipient_email: Annotated[
         EmailStr, Field(description="Recipient address used for Telegram-originated reports")
     ] = "reports@example.com"
