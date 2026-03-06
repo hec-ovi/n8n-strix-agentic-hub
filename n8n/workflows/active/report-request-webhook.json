@@ -1,0 +1,61 @@
+{
+  "name": "Report Request via Webhook v2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "report-request-v2",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "f5c98b35-a922-4ea4-959b-cc99f3815200",
+      "name": "Incoming Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        300
+      ],
+      "webhookId": "report-request-v2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://report-service:8000/api/v1/report-jobs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "685e7cc3-c560-4e7c-a20b-b01d5435a118",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        560,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Incoming Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {},
+  "active": false,
+  "versionId": "18c42f7d-9b98-4cc0-84c0-febd5462e416",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

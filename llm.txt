@@ -1,0 +1,29 @@
+n8n Strix Agentic Hub
+=====================
+
+Purpose
+- Self-hosted workflow orchestration with n8n.
+- Local report generation service using a self-hosted Ollama `gpt-oss:20b` model on ROCm.
+- Output artifacts persisted on the host filesystem and delivered through SMTP.
+
+Service Map
+- `n8n`: workflow orchestration runtime in queue mode.
+- `n8n-worker`: background execution worker.
+- `postgres`: durable workflow metadata store.
+- `redis`: queue backend for n8n.
+- `ollama`: local OpenAI-compatible chat endpoint on AMD ROCm.
+- `report-service`: FastAPI service for synthesis, PDF rendering, and email delivery.
+- `mailpit`: local SMTP sink and inbox viewer.
+
+Current Flow
+- Trigger: `Webhook` node on n8n.
+- Orchestration: n8n calls `report-service`.
+- AI: `report-service` calls `ollama` at `/v1/chat/completions`.
+- Artifact generation: Markdown and PDF are written to host storage.
+- Delivery: PDF is emailed through Mailpit SMTP.
+
+Design Rules
+- n8n orchestrates, but does not perform heavy compute.
+- AI calls target OpenAI-compatible chat APIs for lower future migration friction.
+- Generated artifacts live outside containers on bind-mounted host paths.
+- Workflow definitions are stored as JSON artifacts under `n8n/workflows`.

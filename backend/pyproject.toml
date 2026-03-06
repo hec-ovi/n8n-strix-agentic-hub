@@ -1,0 +1,31 @@
+[project]
+name = "report-service"
+version = "0.1.0"
+description = "Local report generation service for n8n orchestrations"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "beautifulsoup4>=4.13.5,<5.0.0",
+    "email-validator>=2.3.0,<3.0.0",
+    "fastapi[standard]>=0.121.1,<1.0.0",
+    "httpx>=0.28.1,<0.29.0",
+    "pydantic-settings>=2.11.0,<3.0.0",
+    "reportlab>=4.4.4,<5.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2,<9.0.0",
+    "pytest-asyncio>=1.2.0,<2.0.0",
+    "ruff>=0.13.1,<0.14.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

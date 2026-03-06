@@ -5,6 +5,7 @@ mkdir -p \
   .local/n8n \
   .local/postgres \
   .local/redis \
+  .local/report-artifacts \
   n8n/workflows \
   n8n/backups \
   n8n/local-files
