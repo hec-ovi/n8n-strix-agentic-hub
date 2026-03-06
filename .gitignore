@@ -3,10 +3,17 @@ agent/
 
 # Environment
 .env
+.local/
 
 # Node
 node_modules/
 dist/
+
+# n8n runtime data
+n8n/backups/*
+!n8n/backups/.gitignore
+n8n/local-files/*
+!n8n/local-files/.gitignore
 
 # OS
 .DS_Store
