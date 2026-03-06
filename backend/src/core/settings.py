@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from pydantic import Field
+from pydantic import EmailStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -37,3 +37,6 @@ class Settings(BaseSettings):
     smtp_sender: Annotated[str, Field(description="From address used for report emails")] = (
         "reports@n8n-strix.local"
     )
+    telegram_report_recipient_email: Annotated[
+        EmailStr, Field(description="Recipient address used for Telegram-originated reports")
+    ] = "reports@example.com"

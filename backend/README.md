@@ -8,7 +8,14 @@ FastAPI service for turning automation requests into deliverable report artifact
 - Generate a structured brief with a local OpenAI-compatible chat endpoint
 - Render Markdown and PDF artifacts
 - Deliver the report through SMTP
+- Normalize Telegram webhook payloads into report jobs
 - Expose artifact files over HTTP for downstream automation steps
+
+## Endpoints
+
+- `POST /api/v1/report-jobs`
+- `POST /api/v1/telegram/report-jobs`
+- `GET /health`
 
 ## Local Commands
 

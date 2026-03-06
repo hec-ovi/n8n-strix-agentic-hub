@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, EmailStr, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, HttpUrl
 
 
 class ReportRequest(BaseModel):
@@ -89,3 +89,46 @@ class HealthResponse(BaseModel):
     """Health response payload."""
 
     status: Annotated[str, Field(description="Overall health state")]
+
+
+class TelegramUser(BaseModel):
+    """Telegram user metadata relevant to report normalization."""
+
+    id: int | None = None
+    is_bot: bool | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str | None = None
+
+
+class TelegramChat(BaseModel):
+    """Telegram chat metadata relevant to report normalization."""
+
+    id: int | None = None
+    type: str | None = None
+    title: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    username: str | None = None
+
+
+class TelegramMessage(BaseModel):
+    """Telegram message payload relevant to report normalization."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    message_id: int | None = None
+    date: int | None = None
+    text: str | None = None
+    caption: str | None = None
+    from_user: TelegramUser | None = Field(default=None, alias="from")
+    chat: TelegramChat | None = None
+
+
+class TelegramUpdate(BaseModel):
+    """Telegram webhook update payload consumed by the backend."""
+
+    update_id: int | None = None
+    message: TelegramMessage | None = None
+    edited_message: TelegramMessage | None = None
+    channel_post: TelegramMessage | None = None

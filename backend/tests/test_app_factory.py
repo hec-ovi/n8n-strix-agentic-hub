@@ -23,4 +23,5 @@ def test_create_app_registers_expected_routes() -> None:
 
     assert "/health" in route_paths
     assert "/api/v1/report-jobs" in route_paths
+    assert "/api/v1/telegram/report-jobs" in route_paths
     assert "/artifacts" in route_paths

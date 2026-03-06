@@ -4,7 +4,7 @@ Local-first automation stack for orchestrating `n8n` workflows with a self-hoste
 
 ## Overview
 
-This repository packages a production-shaped local stack for automation, artifact generation, and AI-assisted workflow execution. The current implementation is centered on a webhook-driven report pipeline:
+This repository packages a production-shaped local stack for automation, artifact generation, and AI-assisted workflow execution. The current implementation is centered on webhook-driven report pipelines:
 
 `Webhook -> n8n -> report-service -> Ollama -> Markdown/PDF artifact -> email`
 
@@ -22,10 +22,12 @@ Core services:
 
 `n8n` is the orchestrator, not the heavy compute runtime. Workflow nodes handle triggers, control flow, retries, and downstream calls. The backend service performs the AI request, report assembly, PDF rendering, and SMTP delivery.
 
-Current workflow artifact:
+Current workflow artifacts:
 
 - [`n8n/workflows/active/report-request-webhook.json`](./n8n/workflows/active/report-request-webhook.json)
 - Published webhook path: `/webhook/report-request-v2`
+- [`n8n/workflows/active/telegram-report-webhook.json`](./n8n/workflows/active/telegram-report-webhook.json)
+- Published webhook path: `/webhook/telegram-report-bot`
 
 ## Current Layout
 
@@ -88,7 +90,14 @@ The `frontend/` scaffold is currently inactive and not required by the running s
    - `http://localhost:18100/docs` for `report-service`
    - `http://localhost:8025` for `Mailpit`
 
-No external API keys are required for the current webhook-to-email flow. The only required values in `.env` are local secrets, passwords, ports, and host paths. Telegram credentials are only needed if a Telegram trigger/action workflow is added later.
+No external API keys are required for the current generic webhook-to-email flow. The only required values in `.env` are local secrets, passwords, ports, and host paths.
+
+Telegram is different:
+
+- for the local simulated Telegram smoke test, no Telegram credential is required
+- for a real Telegram bot, you need a bot token issued by Telegram via `@BotFather`
+- Telegram must be able to reach your `WEBHOOK_URL`, which means a public HTTPS URL is required for real inbound bot traffic
+- long-running report generation can exceed what is comfortable for a direct Telegram webhook round-trip, so production setups often introduce a queue, bridge, or lighter acknowledgement path for Telegram ingress
 
 ## Workflow Management
 
@@ -105,6 +114,7 @@ Useful commands:
 ./scripts/test-ollama.sh
 ./scripts/test-report-service.sh
 ./scripts/test-report-webhook.sh
+./scripts/test-telegram-report-webhook.sh
 ./scripts/test-mailpit.sh
 ```
 
@@ -128,8 +138,17 @@ Stack smoke checks:
 ./scripts/test-ollama.sh
 ./scripts/test-report-service.sh
 ./scripts/test-report-webhook.sh
+./scripts/test-telegram-report-webhook.sh
 ./scripts/test-mailpit.sh
 ```
+
+Telegram helper:
+
+```bash
+./scripts/register-telegram-webhook.sh
+```
+
+This helper configures Telegram to deliver bot updates to the `telegram-report-bot` n8n webhook. It requires both `TELEGRAM_BOT_TOKEN` and a public HTTPS `WEBHOOK_URL`.
 
 ## Production Notes
 

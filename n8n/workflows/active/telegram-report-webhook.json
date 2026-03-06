@@ -1,0 +1,61 @@
+{
+  "name": "Telegram Report via Webhook v4",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-report-bot",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "c9c2e729-14c0-4d86-b50e-665b6db7d1ff",
+      "name": "Telegram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        220,
+        320
+      ],
+      "webhookId": "telegram-report-bot"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://report-service:8000/api/v1/telegram/report-jobs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "29ac0b57-7ed2-467d-bfe4-d149c6740a41",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        320
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram Webhook": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {},
+  "active": false,
+  "versionId": "8c7bbfd9-1d69-4d8b-8ca0-87fd1687061d",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

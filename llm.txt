@@ -22,6 +22,11 @@ Current Flow
 - Artifact generation: Markdown and PDF are written to host storage.
 - Delivery: PDF is emailed through Mailpit SMTP.
 
+Additional Flow
+- Trigger: Telegram-compatible webhook payload into n8n.
+- Orchestration: n8n normalizes the Telegram update and calls `report-service`.
+- Delivery: `report-service` generates the PDF and emails it to the configured recipient.
+
 Design Rules
 - n8n orchestrates, but does not perform heavy compute.
 - AI calls target OpenAI-compatible chat APIs for lower future migration friction.

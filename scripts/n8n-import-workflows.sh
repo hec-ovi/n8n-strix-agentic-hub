@@ -20,6 +20,8 @@ done < <(find "${WORKFLOW_DIR}" -type f -name '*.json' | sort)
 workflow_list="$(docker compose exec -T -u node n8n n8n list:workflow || true)"
 imported_count=0
 skipped_count=0
+staging_dir=""
+staged_any=0
 
 for workflow_file in "${workflow_files[@]}"; do
   workflow_name="$(sed -n 's/  "name": "\(.*\)",/\1/p' "${workflow_file}" | head -n 1)"
@@ -40,11 +42,19 @@ for workflow_file in "${workflow_files[@]}"; do
     continue
   fi
 
-  docker compose exec -T -u node n8n \
-    n8n import:workflow --input="/workspace/${workflow_file#n8n/}"
+  if [ -z "${staging_dir}" ]; then
+    staging_dir="$(mktemp -d n8n/workflows/.import-XXXXXX)"
+    trap 'if [ -n "${staging_dir}" ] && [ -d "${staging_dir}" ]; then rm -rf "${staging_dir}"; fi' EXIT
+  fi
 
+  cp "${workflow_file}" "${staging_dir}/"
   imported_count=$((imported_count + 1))
-  workflow_list="$(docker compose exec -T -u node n8n n8n list:workflow || true)"
+  staged_any=1
 done
+
+if [ "${staged_any}" -eq 1 ]; then
+  docker compose exec -T -u node n8n \
+    n8n import:workflow --separate --input="/workspace/workflows/${staging_dir##n8n/workflows/}"
+fi
 
 echo "Workflow import finished. Imported ${imported_count}, skipped ${skipped_count}."

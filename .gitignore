@@ -20,6 +20,7 @@ n8n/backups/*
 !n8n/backups/.gitignore
 n8n/local-files/*
 !n8n/local-files/.gitignore
+n8n/workflows/.import-*/
 
 # OS
 .DS_Store
