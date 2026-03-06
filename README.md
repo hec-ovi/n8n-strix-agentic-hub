@@ -2,21 +2,34 @@
 
 Local-first automation stack for orchestrating `n8n` workflows with a self-hosted `Ollama` model on AMD ROCm.
 
+![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-111111?style=for-the-badge&logo=ollama&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![ROCm](https://img.shields.io/badge/AMD_ROCm-C8102E?style=for-the-badge&logo=amd&logoColor=white)
+
 ## Overview
 
 This repository packages a production-shaped local stack for automation, artifact generation, and AI-assisted workflow execution. The current implementation is centered on webhook-driven report pipelines:
 
 `Webhook -> n8n -> report-service -> Ollama -> Markdown/PDF artifact -> email`
 
-Core services:
+## Tech Used
 
-- `n8n` main instance for the editor, API, timers, and inbound webhooks
-- `n8n-worker` for queued workflow execution
-- `postgres` for durable workflow state
-- `redis` for queue transport
-- `ollama` on ROCm using the host-mounted `gpt-oss:20b` model
-- `report-service` for synthesis, artifact rendering, and SMTP delivery
-- `mailpit` for local SMTP capture and inbox inspection
+- `n8n` for workflow orchestration and webhook handling
+- `FastAPI` for the report-generation service
+- `Ollama` for local OpenAI-compatible chat inference
+- `gpt-oss:20b` as the default local model
+- `PostgreSQL` for n8n persistence
+- `Redis` for n8n queue mode
+- `Mailpit` for local SMTP testing and inbox inspection
+- `ReportLab` for PDF generation
+- `uv` for Python dependency and environment management
+- `Docker Compose` for local deployment
+- `AMD ROCm` for GPU-backed local inference
+- `JSON workflow artifacts` for code-first n8n versioning
 
 ## Architecture
 

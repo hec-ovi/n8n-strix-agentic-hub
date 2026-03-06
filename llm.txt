@@ -6,6 +6,15 @@ Purpose
 - Local report generation service using a self-hosted Ollama `gpt-oss:20b` model on ROCm.
 - Output artifacts persisted on the host filesystem and delivered through SMTP.
 
+Tech Used
+- `n8n` for orchestration.
+- `FastAPI` for the backend service.
+- `Ollama` with `gpt-oss:20b` for local inference.
+- `PostgreSQL` and `Redis` for queue-mode n8n.
+- `Mailpit` for local SMTP testing.
+- `ReportLab` for PDF rendering.
+- `Docker Compose` for local deployment.
+
 Service Map
 - `n8n`: workflow orchestration runtime in queue mode.
 - `n8n-worker`: background execution worker.
