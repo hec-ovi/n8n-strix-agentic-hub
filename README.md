@@ -1,14 +1,19 @@
-# n8n Strix Agentic Hub
+<h1 align="center">n8n-strix-agentic-hub</h1>
 
-Self-hosted automation stack built around `n8n`, a local `Ollama` model on AMD ROCm, and a small `FastAPI` service that turns incoming requests into report artifacts and emails.
+<p align="center">
+  <strong>Self-hosted automation stack: n8n orchestrator + FastAPI report service + local Ollama on AMD ROCm. Webhook in, AI-rendered Markdown/PDF report out, emailed.</strong>
+</p>
 
-![n8n](https://img.shields.io/badge/n8n-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-111111?style=for-the-badge&logo=ollama&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![ROCm](https://img.shields.io/badge/AMD_ROCm-C8102E?style=for-the-badge&logo=amd&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Working-brightgreen" alt="Status" />
+  <img src="https://img.shields.io/badge/n8n-Queue_mode-EA4B71?logo=n8n&logoColor=white" alt="n8n" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Ollama-111111?logo=ollama&logoColor=white" alt="Ollama" />
+  <img src="https://img.shields.io/badge/AMD-ROCm-C8102E?logo=amd&logoColor=white" alt="ROCm" />
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License" />
+</p>
+
+---
 
 ## Overview
 
@@ -200,3 +205,9 @@ The next things to harden are the practical ones:
 - scale `n8n-worker` before touching the rest of the stack
 
 The model side is also flexible. Today it points at local `Ollama`, but the backend is already speaking to an OpenAI-compatible chat endpoint, so swapping the inference target later is straightforward.
+
+---
+
+## License
+
+[MIT](LICENSE) for original code in this repository (FastAPI service, scripts, Compose configs, exported workflow JSON). Third-party services pulled at runtime (`n8n`, Ollama, PostgreSQL, Redis, Mailpit) retain their own upstream licenses, including n8n's Sustainable Use License; this repository does not redistribute their source.
